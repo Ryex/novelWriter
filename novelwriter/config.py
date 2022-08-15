@@ -22,6 +22,7 @@ General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
+from __future__ import annotations
 
 import os
 import sys
@@ -40,174 +41,176 @@ from novelwriter.error import logException, formatException
 from novelwriter.common import splitVersionNumber, formatTimeStamp, NWConfigParser
 from novelwriter.constants import nwFiles, nwUnicode
 
-logger = logging.getLogger(__name__)
+from novelwriter.logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class Config:
 
-    LANG_NW   = 1
-    LANG_PROJ = 2
+    LANG_NW: int   = 1
+    LANG_PROJ: int = 2
 
     def __init__(self):
 
         # Set Application Variables
-        self.appName   = "novelWriter"
-        self.appHandle = self.appName.lower()
+        self.appName: str   = "novelWriter"
+        self.appHandle: str = self.appName.lower()
 
         # Config Error Handling
-        self.hasError  = False  # True if the config class encountered an error
-        self.errData   = []     # List of error messages
+        self.hasError: bool  = False  # True if the config class encountered an error
+        self.errData: list[str]   = []     # List of error messages
 
         # Set Paths
-        self.cmdOpen   = None   # Path from command line for project to be opened on launch
-        self.confPath  = None   # Folder where the config is saved
-        self.confFile  = None   # The config file name
-        self.dataPath  = None   # Folder where app data is stored
-        self.lastPath  = None   # The last user-selected folder (browse dialogs)
-        self.appPath   = None   # The full path to the novelwriter package folder
-        self.appRoot   = None   # The full path to the novelwriter root folder
-        self.appIcon   = None   # The full path to the novelwriter icon file
-        self.assetPath = None   # The full path to the novelwriter/assets folder
-        self.pdfDocs   = None   # The location of the PDF manual, if it exists
+        self.cmdOpen:   str | None = None   # Path from command line for project to be opened on launch
+        self.confPath:  str | None = None   # Folder where the config is saved
+        self.confFile:  str | None = None   # The config file name
+        self.dataPath:  str | None = None   # Folder where app data is stored
+        self.lastPath:  str | None = None   # The last user-selected folder (browse dialogs)
+        self.appPath:   str | None = None   # The full path to the novelwriter package folder
+        self.appRoot:   str | None = None   # The full path to the novelwriter root folder
+        self.appIcon:   str | None = None   # The full path to the novelwriter icon file
+        self.assetPath: str | None = None   # The full path to the novelwriter/assets folder
+        self.pdfDocs:   str | None = None   # The location of the PDF manual, if it exists
 
         # Runtime Settings and Variables
         self.confChanged = False  # True whenever the config has chenged, false after save
 
         # General
-        self.guiTheme    = ""     # GUI theme
-        self.guiSyntax   = ""     # Syntax theme
-        self.guiIcons    = ""     # Icon theme
-        self.guiFont     = ""     # Defaults to system default font
-        self.guiFontSize = 11     # Is overridden if system default is loaded
-        self.guiScale    = 1.0    # Set automatically by Theme class
-        self.lastNotes   = "0x0"  # The latest release notes that have been shown
+        self.guiTheme: str     = ""     # GUI theme
+        self.guiSyntax: str    = ""     # Syntax theme
+        self.guiIcons: str     = ""     # Icon theme
+        self.guiFont: str      = ""     # Defaults to system default font
+        self.guiFontSize: int  = 11     # Is overridden if system default is loaded
+        self.guiScale: float   = 1.0    # Set automatically by Theme class
+        self.lastNotes: str   = "0x0"  # The latest release notes that have been shown
 
         self.setDefaultGuiTheme()
         self.setDefaultSyntaxTheme()
         self.setDefaultIconTheme()
 
         # Localisation
-        self.qLocal     = QLocale.system()
-        self.guiLang    = self.qLocal.name()
-        self.qtLangPath = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
-        self.nwLangPath = None
-        self.qtTrans    = {}
+        self.qLocal: QLocale = QLocale.system()
+        self.guiLang: str    = self.qLocal.name()
+        self.qtLangPath: str = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
+        self.nwLangPath: str | None = None
+        self.qtTrans: dict[str, QTranslator] = {}
 
         # Sizes
-        self.winGeometry   = [1200, 650]
-        self.prefGeometry  = [700, 615]
-        self.projColWidth  = [200, 60, 140]
-        self.mainPanePos   = [300, 800]
-        self.docPanePos    = [400, 400]
-        self.viewPanePos   = [500, 150]
-        self.outlnPanePos  = [500, 150]
-        self.isFullScreen  = False
+        self.winGeometry: list[int]  = [1200, 650]
+        self.prefGeometry: list[int] = [700, 615]
+        self.projColWidth: list[int] = [200, 60, 140]
+        self.mainPanePos: list[int]  = [300, 800]
+        self.docPanePos: list[int]   = [400, 400]
+        self.viewPanePos: list[int]  = [500, 150]
+        self.outlnPanePos: list[int] = [500, 150]
+        self.isFullScreen: bool      = False
 
         # Features
-        self.hideVScroll = False  # Hide vertical scroll bars on main widgets
-        self.hideHScroll = False  # Hide horizontal scroll bars on main widgets
-        self.emphLabels  = True   # Add emphasis to H1 and H2 item labels
+        self.hideVScroll: bool = False  # Hide vertical scroll bars on main widgets
+        self.hideHScroll: bool = False  # Hide horizontal scroll bars on main widgets
+        self.emphLabels: bool  = True   # Add emphasis to H1 and H2 item labels
 
         # Project
-        self.autoSaveProj = 60  # Interval for auto-saving project in seconds
-        self.autoSaveDoc  = 30  # Interval for auto-saving document in seconds
+        self.autoSaveProj: int = 60  # Interval for auto-saving project in seconds
+        self.autoSaveDoc: int  = 30  # Interval for auto-saving document in seconds
 
         # Text Editor
-        self.textFont        = None   # Editor font
-        self.textSize        = 12     # Editor font size
-        self.textWidth       = 700    # Editor text width
-        self.textMargin      = 40     # Editor/viewer text margin
-        self.tabWidth        = 40     # Editor tabulator width
+        self.textFont: str | None  = None   # Editor font
+        self.textSize: int         = 12     # Editor font size
+        self.textWidth: int        = 700    # Editor text width
+        self.textMargin: int       = 40     # Editor/viewer text margin
+        self.tabWidth: int         = 40     # Editor tabulator width
 
-        self.focusWidth      = 800    # Focus Mode text width
-        self.hideFocusFooter = False  # Hide document footer in Focus Mode
-        self.showFullPath    = True   # Show full document path in editor header
-        self.autoSelect      = True   # Auto-select word when applying format with no selection
+        self.focusWidth: int       = 800    # Focus Mode text width
+        self.hideFocusFooter: bool = False  # Hide document footer in Focus Mode
+        self.showFullPath: bool    = True   # Show full document path in editor header
+        self.autoSelect: bool      = True   # Auto-select word when applying format with no selection
 
-        self.doJustify       = False  # Justify text
-        self.showTabsNSpaces = False  # Show tabs and spaces in edior
-        self.showLineEndings = False  # Show line endings in editor
-        self.showMultiSpaces = True   # Highlight multiple spaces in the text
+        self.doJustify: bool       = False  # Justify text
+        self.showTabsNSpaces: bool = False  # Show tabs and spaces in edior
+        self.showLineEndings: bool = False  # Show line endings in editor
+        self.showMultiSpaces: bool = True   # Highlight multiple spaces in the text
 
-        self.doReplace       = True   # Enable auto-replace as you type
-        self.doReplaceSQuote = True   # Smart single quotes
-        self.doReplaceDQuote = True   # Smart double quotes
-        self.doReplaceDash   = True   # Replace multiple hyphens with dashes
-        self.doReplaceDots   = True   # Replace three dots with ellipsis
+        self.doReplace: bool       = True   # Enable auto-replace as you type
+        self.doReplaceSQuote: bool = True   # Smart single quotes
+        self.doReplaceDQuote: bool = True   # Smart double quotes
+        self.doReplaceDash: bool   = True   # Replace multiple hyphens with dashes
+        self.doReplaceDots: bool   = True   # Replace three dots with ellipsis
 
-        self.scrollPastEnd   = 25     # Number of lines to scroll past end of document
-        self.autoScroll      = False  # Typewriter-like scrolling
-        self.autoScrollPos   = 30     # Start point for typewriter-like scrolling
+        self.scrollPastEnd: int    = 25     # Number of lines to scroll past end of document
+        self.autoScroll: bool      = False  # Typewriter-like scrolling
+        self.autoScrollPos: int    = 30     # Start point for typewriter-like scrolling
 
-        self.wordCountTimer  = 5.0    # Interval for word count update in seconds
-        self.bigDocLimit     = 800    # Size threshold for heavy editor features in kilobytes
-        self.incNotesWCount  = True   # The status bar word count includes notes
+        self.wordCountTimer: float = 5.0    # Interval for word count update in seconds
+        self.bigDocLimit: int      = 800    # Size threshold for heavy editor features in kilobytes
+        self.incNotesWCount: bool  = True   # The status bar word count includes notes
 
-        self.highlightQuotes = True   # Highlight text in quotes
-        self.allowOpenSQuote = False  # Allow open-ended single quotes
-        self.allowOpenDQuote = True   # Allow open-ended double quotes
-        self.highlightEmph   = True   # Add colour to text emphasis
+        self.highlightQuotes: bool = True   # Highlight text in quotes
+        self.allowOpenSQuote: bool = False  # Allow open-ended single quotes
+        self.allowOpenDQuote: bool = True   # Allow open-ended double quotes
+        self.highlightEmph: bool   = True   # Add colour to text emphasis
 
-        self.stopWhenIdle    = True   # Stop the status bar clock when the user is idle
-        self.userIdleTime    = 300    # Time of inactivity to consider user idle
+        self.stopWhenIdle: bool    = True   # Stop the status bar clock when the user is idle
+        self.userIdleTime: int     = 300    # Time of inactivity to consider user idle
 
         # User-Selected Symbols
-        self.fmtApostrophe   = nwUnicode.U_RSQUO
-        self.fmtSingleQuotes = [nwUnicode.U_LSQUO, nwUnicode.U_RSQUO]
-        self.fmtDoubleQuotes = [nwUnicode.U_LDQUO, nwUnicode.U_RDQUO]
-        self.fmtPadBefore    = ""
-        self.fmtPadAfter     = ""
-        self.fmtPadThin      = False
+        self.fmtApostrophe: str         = nwUnicode.U_RSQUO
+        self.fmtSingleQuotes: list[str] = [nwUnicode.U_LSQUO, nwUnicode.U_RSQUO]
+        self.fmtDoubleQuotes: list[str] = [nwUnicode.U_LDQUO, nwUnicode.U_RDQUO]
+        self.fmtPadBefore: str          = ""
+        self.fmtPadAfter: str           = ""
+        self.fmtPadThin: bool           = False
 
         # Spell Checking
-        self.spellLanguage = None
+        self.spellLanguage: str | None = None
 
         # Search Bar Switches
-        self.searchCase     = False
-        self.searchWord     = False
-        self.searchRegEx    = False
-        self.searchLoop     = False
-        self.searchNextFile = False
-        self.searchMatchCap = False
+        self.searchCase:     bool = False
+        self.searchWord:     bool = False
+        self.searchRegEx:    bool = False
+        self.searchLoop:     bool = False
+        self.searchNextFile: bool = False
+        self.searchMatchCap: bool = False
 
         # Backup
-        self.backupPath      = ""
-        self.backupOnClose   = False
-        self.askBeforeBackup = True
+        self.backupPath: str       = ""
+        self.backupOnClose: bool   = False
+        self.askBeforeBackup: bool = True
 
         # State
-        self.showRefPanel = True  # The reference panel for the viewer is visible
-        self.viewComments = True  # Comments are shown in the viewer
-        self.viewSynopsis = True  # Synopsis is shown in the viewer
+        self.showRefPanel: bool = True  # The reference panel for the viewer is visible
+        self.viewComments: bool = True  # Comments are shown in the viewer
+        self.viewSynopsis: bool = True  # Synopsis is shown in the viewer
 
         # Check Qt5 Versions
         verQt = splitVersionNumber(QT_VERSION_STR)
-        self.verQtString = QT_VERSION_STR
-        self.verQtMajor  = verQt[0]
-        self.verQtMinor  = verQt[1]
-        self.verQtPatch  = verQt[2]
-        self.verQtValue  = verQt[3]
+        self.verQtString: str = QT_VERSION_STR
+        self.verQtMajor: int  = verQt[0]
+        self.verQtMinor: int  = verQt[1]
+        self.verQtPatch: int  = verQt[2]
+        self.verQtValue: int  = verQt[3]
 
         verQt = splitVersionNumber(PYQT_VERSION_STR)
-        self.verPyQtString = PYQT_VERSION_STR
-        self.verPyQtMajor  = verQt[0]
-        self.verPyQtMinor  = verQt[1]
-        self.verPyQtPatch  = verQt[2]
-        self.verPyQtValue  = verQt[3]
+        self.verPyQtString: str = PYQT_VERSION_STR
+        self.verPyQtMajor: int  = verQt[0]
+        self.verPyQtMinor: int  = verQt[1]
+        self.verPyQtPatch: int  = verQt[2]
+        self.verPyQtValue: int  = verQt[3]
 
         # Check Python Version
-        self.verPyString = sys.version.split()[0]
-        self.verPyMajor  = sys.version_info[0]
-        self.verPyMinor  = sys.version_info[1]
-        self.verPyPatch  = sys.version_info[2]
-        self.verPyHexVal = sys.hexversion
+        self.verPyString: str = sys.version.split()[0]
+        self.verPyMajor: int  = sys.version_info[0]
+        self.verPyMinor: int  = sys.version_info[1]
+        self.verPyPatch: int  = sys.version_info[2]
+        self.verPyHexVal: int = sys.hexversion
 
         # Check OS Type
-        self.osType    = sys.platform
-        self.osLinux   = False
-        self.osWindows = False
-        self.osDarwin  = False
-        self.osUnknown = False
+        self.osType: str    = sys.platform
+        self.osLinux: bool   = False
+        self.osWindows: bool = False
+        self.osDarwin: bool  = False
+        self.osUnknown: bool = False
         if self.osType.startswith("linux"):
             self.osLinux = True
         elif self.osType.startswith("darwin"):
@@ -220,14 +223,14 @@ class Config:
             self.osUnknown = True
 
         # Other System Info
-        self.hostName  = "Unknown"
-        self.kernelVer = "Unknown"
+        self.hostName: str  = "Unknown"
+        self.kernelVer: str = "Unknown"
 
         # Packages
-        self.hasEnchant = False  # The pyenchant package
+        self.hasEnchant: bool = False  # The pyenchant package
 
         # Recent Cache
-        self.recentProj = {}
+        self.recentProj: dict[str, dict[str, str | int]] = {}
 
         return
 
@@ -235,13 +238,13 @@ class Config:
     #  Methods
     ##
 
-    def pxInt(self, theSize):
+    def pxInt(self, theSize: int) -> int:
         """Used to scale fixed gui sizes by the screen scale factor.
         This function returns an int, which is always rounded down.
         """
         return int(theSize*self.guiScale)
 
-    def rpxInt(self, theSize):
+    def rpxInt(self, theSize: int) -> int:
         """Used to un-scale fixed gui sizes by the screen scale factor.
         This function returns an int, which is always rounded down.
         """
@@ -251,7 +254,7 @@ class Config:
     #  Config Actions
     ##
 
-    def initConfig(self, confPath=None, dataPath=None):
+    def initConfig(self, confPath: str | None = None, dataPath: str | None = None) -> bool:
         """Initialise the config class. The manual setting of confPath
         and dataPath is mainly intended for the test suite.
         """
@@ -291,6 +294,7 @@ class Config:
         self.confFile = self.appHandle+".conf"
         self.lastPath = os.path.expanduser("~")
         self.appPath = getattr(sys, "_MEIPASS", os.path.abspath(os.path.dirname(__file__)))
+        assert isinstance(self.appPath, str) # for type checking and sanity
         self.appRoot = os.path.abspath(os.path.join(self.appPath, os.path.pardir))
 
         if os.path.isfile(self.appRoot):
@@ -410,6 +414,7 @@ class Config:
         else:
             return []
 
+        assert isinstance(self.nwLangPath, str)  # for type checking and sanity
         for qmFile in os.listdir(self.nwLangPath):
             if not os.path.isfile(os.path.join(self.nwLangPath, qmFile)):
                 continue
@@ -429,6 +434,8 @@ class Config:
         if self.confPath is None:
             return False
 
+        assert isinstance(self.confPath, str)  # for type checking and sanity
+        assert isinstance(self.confFile, str)  # for type checking and sanity
         theConf = NWConfigParser()
         cnfPath = os.path.join(self.confPath, self.confFile)
         try:
