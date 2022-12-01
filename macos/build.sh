@@ -30,6 +30,8 @@ pushd "$SCRIPT_DIR/../" || exit 1
 
 python3 setup.py manual qtlrelease sample
 
+ls -lah .
+
 popd || exit 1
 
 
@@ -37,7 +39,7 @@ pushd "$BUILD_DIR"/ || exit 1
 
 
 
-ls -lah .
+
 
 # echo "Downloading Miniconda ..."
 # # install Miniconda, a self-contained Python distribution
