@@ -5,7 +5,7 @@ on:
     tags:
       - '*'
     branches:
-      - 'macos-appbundle'
+      - 'macos-docs-build'
 
 jobs:
   build:
@@ -34,11 +34,15 @@ jobs:
           echo "VERSION=$ver_novelwriter" >> $GITHUB_ENV
           echo "VERSION_SHORT=$ver_short" >> $GITHUB_ENV
       
+      - name: Setup TeX Live
+        uses: teatimeguest/setup-texlive-action@v2
+      
       - name: Install Dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
           brew update
           brew install create-dmg
+          pip install sphinx
       
       ##
       # BUILD
@@ -53,16 +57,16 @@ jobs:
       # UPLOAD BUILDS
       ##
 
-      - name: Upload binary zip (macOS)
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v3
-        with:
-          name: novelWriter-${{ matrix.name }}-${{ env.VERSION }}.app.zip
-          path: novelWriter.app.zip
+      # - name: Upload binary zip (macOS)
+      #   if: runner.os == 'macOS'
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: novelWriter-${{ matrix.name }}-${{ env.VERSION }}.app.zip
+      #     path: novelWriter.app.zip
 
-      - name: Upload dmg (macOS)
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v3
-        with:
-          name: novelWriter-${{ matrix.name }}-${{ env.VERSION }}.dmg
-          path: novelWriter-${{ env.VERSION }}.dmg
+      # - name: Upload dmg (macOS)
+      #   if: runner.os == 'macOS'
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: novelWriter-${{ matrix.name }}-${{ env.VERSION }}.dmg
+      #     path: novelWriter-${{ env.VERSION }}.dmg
