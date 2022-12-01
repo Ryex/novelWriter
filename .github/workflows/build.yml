@@ -39,12 +39,12 @@ jobs:
         with:
           packages: >-
             scheme-basic
+            collection-latexextra
+            latexmk
       
       - name: Install Dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew update
-          brew install sphinx-doc
           pip3 install sphinx
       
       ##
