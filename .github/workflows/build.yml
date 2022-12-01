@@ -41,6 +41,7 @@ jobs:
             scheme-basic
             collection-latexextra
             latexmk
+            tex-gyre
       
       - name: Install Dependencies (macOS)
         if: runner.os == 'macOS'
