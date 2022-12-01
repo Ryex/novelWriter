@@ -36,12 +36,13 @@ jobs:
       
       - name: Setup TeX Live
         uses: teatimeguest/setup-texlive-action@v2
+        with:
+          packages: >-
+            scheme-basic
       
       - name: Install Dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew update
-          brew install create-dmg
           pip install sphinx
       
       ##
