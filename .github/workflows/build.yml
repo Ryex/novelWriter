@@ -45,7 +45,7 @@ jobs:
         run: |
           brew update
           brew install sphinx-doc
-          pip install sphinx
+          pip3 install sphinx
       
       ##
       # BUILD
