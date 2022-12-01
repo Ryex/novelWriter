@@ -43,6 +43,8 @@ jobs:
       - name: Install Dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
+          brew update
+          brew install sphinx-doc
           pip install sphinx
       
       ##
